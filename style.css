@@ -1,0 +1,15 @@
+.wrapper {
+	margin: auto;
+}
+
+.wrapper h2, p, label {
+	display: flex;
+  align-items: center;
+  justify-content: center
+}
+
+.subm-btn, .reset-btn, .login-btn {
+	 display: flex;
+  justify-content: center;
+  align-items: center;
+}
