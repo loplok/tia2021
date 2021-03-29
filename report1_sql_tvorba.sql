@@ -107,7 +107,9 @@ ALTER TABLE `users_groups`
 ADD CONSTRAINT FK_users_groups_groupname
 FOREIGN KEY (groupname) REFERENCES groups(groupname);
 
-
+-- ako som pisal v reporte 2, cela databaza bola pozmenena, jednalo sa hlavne o FKs a nazvy vsetky FK ktore referencovali nespravne columns. Teraz spravne referencuju 
+-- PKs v useroch(teda aj vsetky columns typu username v hociktorej table boli premenovane na username_id).
+-- pripadne sem hodim dump ak by bolo treba.
 
 
 
