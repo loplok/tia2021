@@ -1,15 +1,207 @@
-.wrapper {
+body, html {
+    margin: 0;
+    height: 100%;
+}
+
+body {
+	height:100%;
+    width:100%;
+	display: grid;
+	grid-template-columns: 5% 20% 5px auto 5%;
+	grid-template-rows: 10px 100px 10% 10px 10% 10px auto 5px 30px 10px;
+	grid-template-areas:
+		' lfade . . . .				'
+		' lfade header header header . '
+        ' lfade nav nav nav . '
+        ' lfade . . . . '
+        ' lfade search-bar . section .'
+        ' lfade . . section . '
+        ' lfade aside . section . '
+        ' lfade . . . . '
+        ' lfade footer footer footer . '
+        ' lfade . . . . ' ;
+    background-image: linear-gradient(to bottom, #cc6666,#ac3939);
+}
+
+/* SECTION CONTENT */
+section {
+	grid-area: section;
+	border-style: solid;
+	border-width: 3px;
+	border-color: black;
+}
+
+/* SEARCH BAR */
+.btn-centered-text {
+	text-align: center;
+}
+
+.search-bar {
+	grid-area: search-bar;
+	width: 100%;
+
+}
+
+/* ASIDE-GRID == PROFILE PART ON MAIN MENU*/
+
+aside {
+	grid-area: aside;
+	border-style: solid;
+	border-width: 3px;
+	border-color: black;
+	max-height: 300px;
+}
+
+aside p {
+	margin: 0;
+}
+
+
+aside div {
 	margin: auto;
+	height: 50%;
 }
 
-.wrapper h2, p, label {
-	display: flex;
-  align-items: center;
-  justify-content: center
+.form-select{
+	text-align: center;
+	display: block;
+	margin: 10px auto;
 }
 
-.subm-btn, .reset-btn, .login-btn {
-	 display: flex;
-  justify-content: center;
-  align-items: center;
+.profile-page-userinfo {	
+	text-align: center;
+	margin-top: 2px;
 }
+
+aside div img {
+	margin-top: 5px;
+	height: 62px;
+	width: 62px;
+  	margin-left: auto;
+ 	margin-right: auto;
+    display: block;
+    border-radius: 50%;
+}
+
+
+/* HEADER-GRID */
+
+header {
+	grid-area: header;
+	position: relative;
+	text-align: left;
+	padding-top: 40px;
+	padding-left: 40px;
+	padding-bottom: 0;
+}
+
+header h3 {
+	margin:5px;
+}
+
+header a {
+	color:black;
+}
+header a:hover {
+ text-decoration : none;
+ color:inherit;
+}
+
+footer {
+	grid-area: footer;
+	margin: 0;
+	text-align: center;
+}
+
+/* NAVBAR MENU */
+
+nav {
+	grid-area: nav;
+	max-height: 100px;
+}
+
+.navbar {
+  overflow: hidden;
+  background-color: #333;
+  font-family: Arial;
+}
+
+.navbar a {
+  float: left;
+  font-size: 16px;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+
+}
+
+/* Add a red background color to navbar links on hover */
+.navbar a:hover{
+  background-color: red;	
+  transition: 2s;
+}
+
+
+.main_section {
+	grid-area: section-grid;
+	position: relative;
+}
+
+#logout_btn {
+	position: absolute;
+	top: 20px;
+	right: 0px;
+}
+
+/* table management */
+
+.my-custom-scrollbar {
+	position: relative;
+	height: 200px;
+	overflow: auto;
+}
+.table-wrapper-scroll-y {
+	display: block;
+}
+.library_books {
+	margin-top: 10px;
+}
+
+.table td, thead {
+	text-align: center;
+}
+
+/* CREATE POST management */
+
+.form-group label{
+	margin-top: 30px;
+	display: block;
+	text-align: center;
+}
+
+.submit_post_btn{
+	text-align: center;
+}
+
+/* POSTS ON PROFILE PAGE ADJUSTMENTS */
+
+.user_post {
+	margin: 15px 20px;
+	text-align: left;
+	border-bottom: #1b1e21 solid 4px;
+	border-left: #1b1e21 solid 4px;
+	padding: 10px;
+}
+
+#main_group_posts {
+overflow: auto;
+}
+
+
+#add_book_div {
+	margin-top: 20px;
+}
+
+
+

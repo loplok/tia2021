@@ -7,7 +7,8 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
 }
  
 require_once "config.php";
- 
+include('functions.php');
+
 $username = $password = "";
 $username_err = $password_err = $login_err = "";
  
@@ -42,13 +43,18 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                     if($stmt->fetch()){
                         if(password_verify($password, $hashed_password)){
                             session_start();
-                            
-                            $_SESSION["loggedin"] = true;
-                            $_SESSION["id"] = $id;
-                            $_SESSION["username"] = $username;                            
-                            
-                            header("location: main_menu.php");
-                        } else{
+                            if (is_admin($username, $password)) {
+                                set_admin_session();
+                                header("location: main_menu.php");
+                            } 
+                            else {
+                                $_SESSION["loggedin"] = true;
+                                $_SESSION["id"] = $id;
+                                $_SESSION["username"] = $username;                            
+                                $_SESSION["is_user"] = true;
+                                header("location: main_menu.php");
+                            } 
+                        } else {
                             $login_err = "Invalid username or password.";
                         }
                     }
@@ -80,7 +86,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         body{ font: 14px sans-serif; }
         .wrapper{ width: 350px; padding: 20px; }
     </style>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style_login.css">
 </head>
 <body>
     <div class="wrapper">

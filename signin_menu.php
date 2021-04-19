@@ -109,7 +109,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         body{ font: 14px sans-serif; }
         .wrapper{ width: 350px; padding: 20px; }
     </style>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style_login.css">
 </head>
 <body>
     <div class="wrapper">
