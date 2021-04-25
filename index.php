@@ -1,4 +1,7 @@
 <?php
+if (!isset($_SESSION["loggedin"])) {
+     header("location: login_menu.php");
+}
 	include('functions.php');
 	if (isset($_SESSION["admin_rights"]) && ($_SESSION["admin_rights"])) {
 		echo "admin";
@@ -12,6 +15,6 @@
 		include ('aside.php');
 		include ('main_section.php');
 		include ('footer.php');
-	} 
+	}
 ?>
 

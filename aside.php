@@ -29,6 +29,6 @@ $('#groups_selector').on('change', function() {
                success: function(data) {
                    document.getElementById("main_group_posts").innerHTML = data;
                }
-             });
+   });
 });
 </script>

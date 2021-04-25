@@ -6,11 +6,32 @@
 </div>
 </div>
 
+<div class="modal fade" id="modelWindow" role="dialog">
+    <div class="modal-dialog modal-sm vertical-align-center">
+      <div class="modal-content">
+          <h4 class="modal-title">Heading</h4>
+        <div class="modal-body" id="search_input">
+            Body text here
+        </div>
+        <div class="modal-footer">
+            <button type="button" data-dismiss="modal" class="btn btn-default">Close</button>
+        </div>
+      </div>
+    </div>
+</div>
+
 
 <script>
 $(document).ready(function(){
+
     $('#searchContent').click(function(){
-          var searchVal = $("#search_value").val();
+    var searchVal = $("#search_value").val();
+    $('#modelWindow').modal('show');
+    $('#search_input').text(searchVal);
+
+        /*
+
+          console.log(searchVal);
           $.ajax({
             url:"add_group_to_my_groups.php",
             method: "POST",
@@ -19,6 +40,7 @@ $(document).ready(function(){
                 console.log(data);
             }
           });
+        */
     });
 });
 </script>

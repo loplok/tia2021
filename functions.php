@@ -25,9 +25,8 @@ function echo_username() {
 	echo $_SESSION["username"];
 }
 
-
 function get_date_joined($mysqli) {
-	$prepared_query = "SELECT DATE(created) FROM users WHERE username = ?";
+	$prepared_query = "SELECT DATE (created) FROM users WHERE username = ?";
 	if ($stmt = $mysqli->prepare($prepared_query)){
             $stmt->bind_param("s", $_SESSION["username"]);
             if($stmt->execute()){
@@ -36,6 +35,18 @@ function get_date_joined($mysqli) {
                 return $res;
             }
     }               
+}
+
+function get_username_from_id($mysqli, $id) {
+    $prepared_query = "SELECT username FROM users WHERE id = ?";
+	if ($stmt = $mysqli->prepare($prepared_query)){
+            $stmt->bind_param("u", $id);
+            if($stmt->execute()){
+                $stmt->bind_result($res);
+        		$stmt->fetch();
+                return $res;
+            }
+    }
 }
 
 function echo_member_for($mysqli) {
@@ -83,6 +94,24 @@ function get_group_id_of_given_group($mysqli, $groupname) {
     }
 }
 
+function is_post_liked_by_user($mysqli, $group_post_id) {
+    $user_id = get_user_id($mysqli);
+    $prepared_query = "SELECT COUNT (DISTINCT liked_by_username_id) as likes_counter
+                       FROM likes
+                       WHERE post_liked_id=? AND liked_by_username_id=?";
+    if ($stmt = $mysqli->prepare($prepared_query)){
+        $stmt->bind_param("ii", $group_post_id, $user_id);
+        $stmt->execute();
+        $stmt->bind_result($res);
+        $stmt->fetch();
+        if ($res == 1) {
+            return True;
+        } else {
+            return False;
+        }
+    }
+}
+
 
 /* INSERTS ONLY */
 function insert_book_into_library($mysqli, $book_data) {
@@ -98,11 +127,12 @@ function insert_book_into_library($mysqli, $book_data) {
     }
 }
 
+
 function add_group_to_my_groups($mysqli, $groupname) {
     $group_id = get_group_id_of_given_group($mysqli, $groupname);
     $user_id = get_user_id($mysqli);
 
-    $prepared_query_count = "SELECT COUNT(groupname_id) as count
+    $prepared_query_count = "SELECT COUNT (groupname_id) as count
                              FROM users_groups
                              WHERE groupname_id=? GROUP BY groupname_id";
     if ($stmt = $mysqli->prepare($prepared_query_count)){
@@ -118,22 +148,50 @@ function add_group_to_my_groups($mysqli, $groupname) {
     }
 }
 
+function remove_like_on_post($mysqli, $post_id) {
+    $user_id = get_user_id($mysqli);
+    $prepared_query_count = "DELETE FROM likes WHERE post_liked_id=? AND liked_by_username_id=?";
+    if ($stmt = $mysqli->prepare($prepared_query_count)){
+        $stmt->bind_param("ii", $post_id, $user_id);
+        $stmt->execute();
+        $stmt->fetch();
+    }
+}
+
+
+function add_like_on_post($mysqli, $post_id) {
+    if (is_post_liked_by_user($mysqli, $post_id)) {
+        remove_like_on_post($mysqli, $post_id);
+    } else {
+    $user_id = get_user_id($mysqli);
+    $prepared_query_count = "INSERT INTO likes(id, post_liked_id, liked_by_username_id)
+    VALUES (NULL, ?, ?)";
+    if ($stmt = $mysqli->prepare($prepared_query_count)){
+        $stmt->bind_param("ii", $post_id, $user_id);
+        $stmt->execute();
+        $stmt->fetch();
+    }
+    }
+}
+
 
 function create_group_as_admin($mysqli, $group_id, $user_id, $groupname) {
     $prepared_query = "INSERT INTO groups(id, is_public, groupname, users_count)
              VALUES(NULL, True, ?, 0)";
-            if ($stmt = $mysqli->prepare($prepared_query)){
-                        $stmt->bind_param("s", $groupname);
-                        $stmt->execute();
-            }
+    if ($stmt = $mysqli->prepare($prepared_query)){
+                $stmt->bind_param("s", $groupname);
+                $stmt->execute();
+    }
 
     $prepared_query = "INSERT INTO users_groups(id, groupname_id, username_id, role, joined)
          VALUES(NULL, ?, ?, 'admin', NOW())";
-        if ($stmt2 = $mysqli->prepare($prepared_query)){
-                    $stmt2->bind_param("ii", $group_id, $user_id);
-                    $stmt2->execute();
-        }
+
+    if ($stmt2 = $mysqli->prepare($prepared_query)){
+                $stmt2->bind_param("ii", $group_id, $user_id);
+                $stmt2->execute();
+    }
 }
+
 
 function join_group_as_member($mysqli, $group_id, $user_id) {
     $prepared_query = "INSERT INTO users_groups(id, groupname_id, username_id, role, joined)
@@ -143,6 +201,7 @@ function join_group_as_member($mysqli, $group_id, $user_id) {
                     $stmt->execute();
         }
 }
+
 
 function insert_post_into_db($mysqli, $post_data) {
     $group = $bookName = $thoughts = "";
@@ -164,7 +223,7 @@ function insert_post_into_db($mysqli, $post_data) {
 
 /* FILLING SELECTS ONLY */
 function fill_books_in_create_post($mysqli) {
-    $prepared_query = "SELECT DISTINCT bookid FROM library WHERE username=?";
+    $prepared_query = "SELECT D ISTINCT bookid FROM library WHERE username=?";
         if ($stmt = $mysqli->prepare($prepared_query)){
                 $stmt->bind_param("s", $_SESSION["username"]);
                 if($stmt->execute()){
@@ -175,9 +234,9 @@ function fill_books_in_create_post($mysqli) {
                     while ($stmt->fetch()) {
                         echo "<option value='{$bookid}'>{$bookid}</option>";
                     }
-                    } else {
-                        echo "<option value='no_books' disabled>Add a book to your library first!</option>";
-                        echo "</select>;";
+                } else {
+                    echo "<option value='no_books' disabled>Add a book to your library first!</option>";
+                    echo "</select>;";
                     }
                 }
         }
@@ -228,6 +287,31 @@ function fill_groups_of_user_when_creating_post($mysqli) {
         }
 }
 
+function fill_comments_of_post($mysqli, $group_post_id) {
+    $prepared_query = "SELECT comments_username_id as user_id, text FROM comments WHERE group_post_id=?";
+     if ($stmt = $mysqli->prepare($prepared_query)) {
+
+        $stmt->bind_param("i", $group_post_id);
+
+        if ($stmt->execute()) {
+            $stmt->store_result();
+            $amountOfRows = $stmt->num_rows;
+
+            if($amountOfRows > 0) {
+                $stmt->bind_result($user_id, $text);
+                $commenter_username = get_username_from_id($mysqli,$user_id);
+
+                while ($stmt->fetch()) {
+
+                }
+
+            } else {
+            }
+        }
+    }
+
+}
+
 function fill_groups_for_user($mysqli) {
     $prepared_query = "SELECT groupname from users join users_groups on users.id=users_groups.username_id
     JOIN `groups` ON groupname_id=`groups`.id WHERE username=?";
@@ -252,8 +336,9 @@ function fill_groups_for_user($mysqli) {
     }
 }
 
+
 function fill_profile_with_group_data($mysqli, $group) {
-    $prepared_query = "select username, posted_when, text, bookname
+    $prepared_query = "select username, posted_when, text, bookname, group_post.id
                        from group_post JOIN users ON group_post.username_id=users.id
                        JOIN `groups` ON group_post.groups_id=`groups`.id
                        WHERE groupname=? ORDER BY posted_when DESC";
@@ -263,12 +348,15 @@ function fill_profile_with_group_data($mysqli, $group) {
                 $stmt->store_result();
                 $amountOfRows = $stmt->num_rows;
                 if($amountOfRows > 0) {
-                    $stmt->bind_result($username, $posted_when, $text, $bookname);
+                    $stmt->bind_result($username, $posted_when, $text, $bookname, $group_post_id);
                     while ($stmt->fetch()) {
                         echo "<div class='user_post'>";
+                        echo create_likebutton_based_on_likes_of_users($mysqli, $group_post_id);
                         echo "<b>{$username}</b> at {$posted_when} was reading a book called  <b>{$bookname}</b>";
                         echo "<br>";
                         echo "and shared his thoughts: {$text}";
+                        echo fill_comments_of_post($mysqli, $group_post_id);
+                        echo create_comment_form();
                         echo "</div>";
                     }
                 } else {
@@ -279,6 +367,64 @@ function fill_profile_with_group_data($mysqli, $group) {
                 }
     }
 }
+
+
+function create_likebutton_based_on_likes_of_users($mysqli, $group_post_id) {
+    $prepared_query = "SELECT COUNT (DISTINCT liked_by_username_id) as likes_counter
+                       FROM likes
+                       WHERE post_liked_id=?";
+        if ($stmt = $mysqli->prepare($prepared_query)){
+                    $stmt->bind_param("i", $group_post_id);
+
+                    if($stmt->execute()){
+                        $stmt->store_result();
+                        $amountOfRows = $stmt->num_rows;
+
+                        if($amountOfRows > 0) {
+
+                            $stmt->bind_result($likes_counter);
+                            if (is_post_liked_by_user($mysqli, $group_post_id)) {
+                                while ($stmt->fetch()) {
+                                    if ($likes_counter > 1) {
+                                        $other_likes = $likes_counter - 1;
+                                        echo "<button type='button' class='btn btn-outline-dark btn-sm active'
+                                            id='{$group_post_id}'
+                                            onClick=like_post(this)>Liked by you and {$other_likes} other users</button>";
+                                    } else {
+                                        echo "<button type='button' class='btn btn-outline-dark btn-sm active'
+                                        id='{$group_post_id}'
+                                        onClick=like_post(this)>Liked by you</button>";
+                                    }
+                                }
+                            } else {
+                                while ($stmt->fetch()) {
+                                    if ($likes_counter >= 1) {
+                                        echo "<button type='button' class='btn btn-outline-dark btn-sm' id='{$group_post_id}'
+                                              onClick=like_post(this)>Liked by {$other_likes} other users</button>";
+                                    } else {
+                                        echo "<button type='button' class='btn btn-outline-dark btn-sm'
+                                            id='{$group_post_id}'
+                                            onClick=like_post(this)>Be first to like this post</button>";
+                                    }
+                                }
+                            }
+                        }
+                    }
+        }
+}
+
+function create_comment_form() {
+    echo "
+        <form>
+            <div class='form-group'>
+             <textarea class='form-control' id='exampleFormControlTextarea' rows='1'
+                placeholder='Share a comment..'></textarea>
+            </div>
+        </form>
+    ";
+}
+
+
 
 function fill_library_with_user_books($mysqli) {
     $prepared_query = "SELECT bookid, category, author FROM library WHERE username=? ORDER BY category ASC";
@@ -387,3 +533,29 @@ function create_header_create_post() {
 
 /* CREATING HEADERS ONLY */
 ?>
+
+<script>
+
+    function like_post(button) {
+        var post_id = (button.id);
+        console.log(post_id);
+        $.ajax({
+                        url:"add_to_likes.php",
+                        method: "POST",
+                        data: {post_id: post_id},
+                        success: function(data) {
+                            var selected_group = $("#groups_selector").find(":selected").val();
+                            localStorage.setItem("selected_group", selected_group);
+                            console.log(selected_group);
+                            if (button.classList.contains('active')) {
+                                button.classList.remove('active');
+                            } else {
+                                button.classList.remove('add');
+
+                            }
+                            location.reload();
+
+                        }
+        });
+    };
+</script>

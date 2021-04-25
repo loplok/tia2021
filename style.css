@@ -158,7 +158,6 @@ nav {
 
 .my-custom-scrollbar {
 	position: relative;
-	height: 200px;
 	overflow: auto;
 }
 .table-wrapper-scroll-y {
@@ -192,12 +191,18 @@ nav {
 	border-bottom: #1b1e21 solid 4px;
 	border-left: #1b1e21 solid 4px;
 	padding: 10px;
+	display: inline-block;
+	width: 95%;
+}
+
+.user_post button {
+	display: inline-block;
+	float: right;
 }
 
 #main_group_posts {
 overflow: auto;
 }
-
 
 #add_book_div {
 	margin-top: 20px;
