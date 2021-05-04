@@ -9,9 +9,9 @@
 <div class="modal fade" id="modelWindow" role="dialog">
     <div class="modal-dialog modal-sm vertical-align-center">
       <div class="modal-content">
-          <h4 class="modal-title">Heading</h4>
+          <h4 class="modal-title"> Your search results</h4>
         <div class="modal-body" id="search_input">
-            Body text here
+
         </div>
         <div class="modal-footer">
             <button type="button" data-dismiss="modal" class="btn btn-default">Close</button>
@@ -25,22 +25,21 @@
 $(document).ready(function(){
 
     $('#searchContent').click(function(){
-    var searchVal = $("#search_value").val();
-    $('#modelWindow').modal('show');
-    $('#search_input').text(searchVal);
+        var searchVal = $("#search_value").val();
+        $('#search_input').text(searchVal);
 
-        /*
 
           console.log(searchVal);
+
           $.ajax({
-            url:"add_group_to_my_groups.php",
+            url:"search_result.php",
             method: "POST",
             data: {searchVal: searchVal},
             success: function(data) {
-                console.log(data);
+                document.getElementById("search_input").innerHTML = data;
+                $('#modelWindow').modal('show');
             }
           });
-        */
     });
 });
 </script>

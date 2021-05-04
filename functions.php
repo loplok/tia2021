@@ -81,7 +81,7 @@ function get_user_id($mysqli) {
 }
 
 function get_group_id_of_given_group($mysqli, $groupname) {
-    $prepared_query = "SELECT groupname_id
+    $prepared_query = "SELECT DISTINCT (groupname_id)
                       FROM users_groups JOIN `groups` ON users_groups.groupname_id=`groups`.id
                       WHERE `groups`.groupname=?";
 	if ($stmt = $mysqli->prepare($prepared_query)){
@@ -89,6 +89,9 @@ function get_group_id_of_given_group($mysqli, $groupname) {
             if($stmt->execute()){
                 $stmt->bind_result($res);
         		$stmt->fetch();
+        		if ( ! $res) {
+        		    return "empty";
+        		}
                 return $res;
             }
     }
@@ -128,26 +131,6 @@ function insert_book_into_library($mysqli, $book_data) {
 }
 
 
-function add_group_to_my_groups($mysqli, $groupname) {
-    $group_id = get_group_id_of_given_group($mysqli, $groupname);
-    $user_id = get_user_id($mysqli);
-
-    $prepared_query_count = "SELECT COUNT (groupname_id) as count
-                             FROM users_groups
-                             WHERE groupname_id=? GROUP BY groupname_id";
-    if ($stmt = $mysqli->prepare($prepared_query_count)){
-        $stmt->bind_param("s", $group_id);
-        $stmt->execute();
-        $stmt->bind_result($count);
-        $stmt->fetch();
-    }
-    if ($count == 0) {
-        create_group_as_admin($mysqli, $group_id, $user_id, $groupname);
-    } else {
-        join_group_as_member($mysqli, $group_id, $user_id);
-    }
-}
-
 function remove_like_on_post($mysqli, $post_id) {
     $user_id = get_user_id($mysqli);
     $prepared_query_count = "DELETE FROM likes WHERE post_liked_id=? AND liked_by_username_id=?";
@@ -174,9 +157,8 @@ function add_like_on_post($mysqli, $post_id) {
     }
 }
 
-
-function create_group_as_admin($mysqli, $group_id, $user_id, $groupname) {
-    $prepared_query = "INSERT INTO groups(id, is_public, groupname, users_count)
+function create_group_as_admin($mysqli, $groupname) {
+    $prepared_query = "INSERT INTO `groups` (id, is_public, groupname, users_count)
              VALUES(NULL, True, ?, 0)";
     if ($stmt = $mysqli->prepare($prepared_query)){
                 $stmt->bind_param("s", $groupname);
@@ -186,18 +168,19 @@ function create_group_as_admin($mysqli, $group_id, $user_id, $groupname) {
     $prepared_query = "INSERT INTO users_groups(id, groupname_id, username_id, role, joined)
          VALUES(NULL, ?, ?, 'admin', NOW())";
 
-    if ($stmt2 = $mysqli->prepare($prepared_query)){
-                $stmt2->bind_param("ii", $group_id, $user_id);
+
+    if ($stmt2 = $mysqli->prepare($prepared_query)) {
+                $stmt2->bind_param("ii", get_group_id_of_given_group($mysqli, $groupname), get_user_id($mysqli));
                 $stmt2->execute();
     }
 }
 
 
-function join_group_as_member($mysqli, $group_id, $user_id) {
+function join_group_as_member($mysqli, $groupname) {
     $prepared_query = "INSERT INTO users_groups(id, groupname_id, username_id, role, joined)
          VALUES(NULL, ?, ?, 'user', NOW())";
         if ($stmt = $mysqli->prepare($prepared_query)){
-                    $stmt->bind_param("ii", $group_id, $user_id);
+                    $stmt->bind_param("ii", get_group_id_of_given_group($mysqli, $groupname), get_user_id($mysqli));
                     $stmt->execute();
         }
 }
@@ -223,7 +206,7 @@ function insert_post_into_db($mysqli, $post_data) {
 
 /* FILLING SELECTS ONLY */
 function fill_books_in_create_post($mysqli) {
-    $prepared_query = "SELECT D ISTINCT bookid FROM library WHERE username=?";
+    $prepared_query = "SELECT DISTINCT bookid FROM library WHERE username=?";
         if ($stmt = $mysqli->prepare($prepared_query)){
                 $stmt->bind_param("s", $_SESSION["username"]);
                 if($stmt->execute()){
@@ -424,6 +407,88 @@ function create_comment_form() {
     ";
 }
 
+/* ONLY SEARCH RESULTS FUNCTIONS */
+function get_existence_of_group($mysqli, $search_val) {
+    $prepared_query_count = "SELECT COUNT (*)
+                                 FROM `groups`
+                                 WHERE groupname=?";
+
+        if ($stmt = $mysqli->prepare($prepared_query_count)){
+            $stmt->bind_param("s", $search_val);
+            $stmt->execute();
+            $stmt->bind_result($count);
+            $stmt->fetch();
+
+            if ($count == "0") {
+                return False;
+            } else {
+                return True;
+            }
+
+        }
+}
+
+function is_member_of_group($mysqli, $username_id, $groupname_id) {
+    $prepared_query_count = "SELECT COUNT (*)
+                                     FROM `users_groups`
+                                     WHERE groupname_id=? AND username_id=?";
+
+            if ($stmt = $mysqli->prepare($prepared_query_count)){
+                $stmt->bind_param("ii", $groupname_id, $username_id );
+                $stmt->execute();
+                $stmt->bind_result($count);
+                $stmt->fetch();
+
+                if ($count == "0") {
+                    return False;
+                } else {
+                    return True;
+                }
+
+            }
+}
+
+function create_search_result($mysqli, $search_val) {
+    echo create_group_search_result($mysqli, $search_val);
+    echo create_user_search_result($mysqli, $search_val);
+}
+
+
+function create_group_search_result($mysqli, $search_val) {
+
+    $does_searched_group_exist = get_existence_of_group($mysqli, $search_val);
+    $username_id = get_user_id($mysqli);
+    $group_id = get_group_id_of_given_group($mysqli, $search_val);
+    $is_member_of_group = is_member_of_group($mysqli, $username_id, $group_id);
+
+    if ($does_searched_group_exist == False) {
+        create_option_create_group_in_search($mysqli, $search_val);
+    } else if ($does_searched_group_exist == True && $is_member_of_group == True) {
+        echo "You are a member in that group!";
+    } else if ($does_searched_group_exist == True && $is_member_of_group == False) {
+        create_option_join_group_as_member($mysqli, $search_val);
+    }
+}
+
+function create_user_search_result($mysqli, $search_val) {
+
+}
+
+function create_option_create_group_in_search($mysqli, $group_name) {
+    echo "<span>There are no groups created yet, would you like to create one ?</span>";
+    echo "<p><button type='button' data-dismiss='modal' class='btn btn-danger' id={$group_name} onClick=create_as_admin(this)
+        >Create group as an admin</button></p>";
+}
+
+function create_option_join_group_as_member($mysqli, $group_name) {
+    echo "<span>We found your group! Would you like to join ?</span>";
+    echo "<p><button type='button' data-dismiss='modal' class='btn btn-danger' id={$group_name} onClick=join_as_member(this)
+    >Join the group as a member</button></p>";
+    echo "<br>";
+}
+
+
+/* ONLY SEARCH RESULTS FUNCTIONS */
 
 
 function fill_library_with_user_books($mysqli) {
@@ -535,7 +600,6 @@ function create_header_create_post() {
 ?>
 
 <script>
-
     function like_post(button) {
         var post_id = (button.id);
         console.log(post_id);
@@ -558,4 +622,31 @@ function create_header_create_post() {
                         }
         });
     };
+
+    function create_as_admin(button) {
+        var group_name = (button.id);
+        console.log(group_name);
+                $.ajax({
+                                url:"create_group_as_admin.php",
+                                method: "POST",
+                                data: {group_name: group_name},
+                                success: function(data) {
+
+                                }
+                });
+    }
+
+    function join_as_member(button) {
+       var group_name = (button.id);
+       console.log(group_name);
+               $.ajax({
+                               url:"join_group_as_member.php",
+                               method: "POST",
+                               data: {group_name: group_name},
+                               success: function(data) {
+
+                               }
+               });
+   }
+
 </script>
