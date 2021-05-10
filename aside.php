@@ -15,7 +15,13 @@
 	<div class="groups-page">
 		<select class="form-select" id="groups_selector" aria-label="Default select example">
           <?php fill_groups_for_user($mysqli); ?>
+
+          <span><b>BACK TO TOP</b></span>
+          <img src="images/arrow_up.png" class="left-img" alt="UPL">
+          <img src="images/arrow_up.png" class="right-img" alt="UPR">
+
 	</div>
+
 </aside>
 
 <script>
@@ -26,9 +32,20 @@ $('#groups_selector').on('change', function() {
                url:"update_profile_groups_posts.php",
                method: "POST",
                data: {group: group},
+                beforeSend: function(){
+                // Show image container
+                document.getElementById("main_group_posts").innerHTML = "<div class='lds-dual-ring'></div>";
+                },
                success: function(data) {
                    document.getElementById("main_group_posts").innerHTML = data;
                }
    });
+});
+
+$(document).ready(function(){
+$('.groups-page img,span').click(function(){
+   $('html, body').animate({scrollTop : 0},800);
+   return false;
+});
 });
 </script>

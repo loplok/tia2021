@@ -81,7 +81,7 @@ function get_user_id($mysqli) {
 }
 
 function get_group_id_of_given_group($mysqli, $groupname) {
-    $prepared_query = "SELECT DISTINCT (groupname_id)
+    $prepared_query = "SELECT DISTINCT (groupname_id) as res
                       FROM users_groups JOIN `groups` ON users_groups.groupname_id=`groups`.id
                       WHERE `groups`.groupname=?";
 	if ($stmt = $mysqli->prepare($prepared_query)){
@@ -130,6 +130,15 @@ function insert_book_into_library($mysqli, $book_data) {
     }
 }
 
+function remove_book_from_library($mysqli, $remove_record_id) {
+    $prepared_query = "DELETE FROM library WHERE id=?";
+    if ($stmt = $mysqli->prepare($prepared_query)){
+                $stmt->bind_param("s", $remove_record_id);
+                if ($stmt->execute()) return True;
+    }
+    return False;
+}
+
 
 function remove_like_on_post($mysqli, $post_id) {
     $user_id = get_user_id($mysqli);
@@ -146,14 +155,14 @@ function add_like_on_post($mysqli, $post_id) {
     if (is_post_liked_by_user($mysqli, $post_id)) {
         remove_like_on_post($mysqli, $post_id);
     } else {
-    $user_id = get_user_id($mysqli);
-    $prepared_query_count = "INSERT INTO likes(id, post_liked_id, liked_by_username_id)
-    VALUES (NULL, ?, ?)";
-    if ($stmt = $mysqli->prepare($prepared_query_count)){
-        $stmt->bind_param("ii", $post_id, $user_id);
-        $stmt->execute();
-        $stmt->fetch();
-    }
+        $user_id = get_user_id($mysqli);
+        $prepared_query_count = "INSERT INTO likes(id, post_liked_id, liked_by_username_id)
+        VALUES (NULL, ?, ?) ";
+        if ($stmt = $mysqli->prepare($prepared_query_count)){
+            $stmt->bind_param("ii", $post_id, $user_id);
+            $stmt->execute();
+            $stmt->fetch();
+        }
     }
 }
 
@@ -305,9 +314,9 @@ function fill_groups_for_user($mysqli) {
             $amountOfRows = $stmt->num_rows;
             if($amountOfRows > 0) {
                 $stmt->bind_result($groupname);
-                echo "<option value='Found groups'>Select a group to show posts</option>";
+                echo "<option value='Found groups' selected disabled>Show feed from your groups</option>";
                 while ($stmt->fetch()) {
-                    echo "<option value='{$groupname}'>  {$groupname} </option>";
+                    echo "<option value='{$groupname}' >  {$groupname} </option>";
                 }
                 echo "</select>";
 
@@ -428,8 +437,29 @@ function get_existence_of_group($mysqli, $search_val) {
         }
 }
 
-function is_member_of_group($mysqli, $username_id, $groupname_id) {
+function get_existence_of_user($mysqli, $search_val) {
     $prepared_query_count = "SELECT COUNT (*)
+                                 FROM `users`
+                                 WHERE username=?";
+
+        if ($stmt = $mysqli->prepare($prepared_query_count)){
+            $stmt->bind_param("s", $search_val);
+            $stmt->execute();
+            $stmt->bind_result($count);
+            $stmt->fetch();
+
+            if ($count == "0") {
+                return False;
+            } else {
+                return True;
+            }
+
+        }
+}
+
+
+function is_member_of_group($mysqli, $username_id, $groupname_id) {
+    $prepared_query_count = "SELECT COUNT (*) as count
                                      FROM `users_groups`
                                      WHERE groupname_id=? AND username_id=?";
 
@@ -444,13 +474,14 @@ function is_member_of_group($mysqli, $username_id, $groupname_id) {
                 } else {
                     return True;
                 }
-
             }
 }
 
 function create_search_result($mysqli, $search_val) {
     echo create_group_search_result($mysqli, $search_val);
+    echo "<p> </p>";
     echo create_user_search_result($mysqli, $search_val);
+    echo "<button type='button btn-danger' data-dismiss='modal' id='close_creating_admin_group' class='btn btn-danger'>Close</button>";
 }
 
 
@@ -464,27 +495,35 @@ function create_group_search_result($mysqli, $search_val) {
     if ($does_searched_group_exist == False) {
         create_option_create_group_in_search($mysqli, $search_val);
     } else if ($does_searched_group_exist == True && $is_member_of_group == True) {
-        echo "You are a member in that group!";
+        echo "<p>You are a member in that group!</p>";
     } else if ($does_searched_group_exist == True && $is_member_of_group == False) {
         create_option_join_group_as_member($mysqli, $search_val);
     }
 }
 
 function create_user_search_result($mysqli, $search_val) {
-
+    $does_searched_user_exist = get_existence_of_user($mysqli, $search_val);
+    echo "<h4 class='modal-title'> User search results</h4>";
+    if ($does_searched_user_exist && $search_val != $_SESSION["username"]) {
+        echo "<button type='button' data-dismiss='modal' class='btn btn-dark' id={$search_val}
+                data-id='add_friend'>FOLLOW USER</button>";
+    } else if ($does_searched_user_exist && $search_val == $_SESSION["username"]) {
+        echo "<p>Hey, that`s you!</p>";
+    } else {
+        echo "<p>No user with that name was found</p>";
+    }
 }
 
 function create_option_create_group_in_search($mysqli, $group_name) {
-    echo "<span>There are no groups created yet, would you like to create one ?</span>";
-    echo "<p><button type='button' data-dismiss='modal' class='btn btn-danger' id={$group_name} onClick=create_as_admin(this)
-        >Create group as an admin</button></p>";
+    echo "<p>There are no groups created yet, would you like to create one ?</p>";
+    echo "<button type='button' data-dismiss='modal' class='btn btn-dark' id={$group_name} onClick=create_as_admin(this)
+        data-id='create_group_btn'> Admin this group</button>";
 }
 
 function create_option_join_group_as_member($mysqli, $group_name) {
-    echo "<span>We found your group! Would you like to join ?</span>";
-    echo "<p><button type='button' data-dismiss='modal' class='btn btn-danger' id={$group_name} onClick=join_as_member(this)
-    >Join the group as a member</button></p>";
-    echo "<br>";
+    echo "<p>We found your group! Would you like to join ?</p>";
+    echo "<button type='button' data-dismiss='modal' class='btn btn-dark' id={$group_name} onClick=join_as_member(this)
+    data-id='create_group_btn'>Join as a member</button>";
 }
 
 
@@ -492,7 +531,7 @@ function create_option_join_group_as_member($mysqli, $group_name) {
 
 
 function fill_library_with_user_books($mysqli) {
-    $prepared_query = "SELECT bookid, category, author FROM library WHERE username=? ORDER BY category ASC";
+    $prepared_query = "SELECT id, bookid, category, author FROM library WHERE username=? ORDER BY category ASC";
             if ($stmt = $mysqli->prepare($prepared_query)){
                     $stmt->bind_param("s", $_SESSION["username"]);
                     if($stmt->execute()){
@@ -511,8 +550,7 @@ function fill_library_with_user_books($mysqli) {
                                    <tbody>';
 
                             while ($row = $result->fetch_assoc()) {
-                                echo '<tr>
-
+                                echo '<tr id='. $row["id"] . '>
                                           <td>' . $row["category"] . '</td>
                                           <td>' . $row["author"] . '</td>
                                           <td>' . $row["bookid"] . '</td>
@@ -558,14 +596,13 @@ function create_header_library() {
 		<html>
 		<head>
 			<meta charset="utf-8">
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+            <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
             			<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
             			integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 
                         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
                         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
             			<link href="style.css" rel="stylesheet">
-			<link href="style.css" rel="stylesheet">
 			<title>Welcome to Bookery</title>
 		</head>
 		<body>	
@@ -580,7 +617,7 @@ function create_header_create_post() {
 		<html>
 		<head>
 			<meta charset="utf-8">
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+            <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
             			<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
             			integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 
@@ -631,7 +668,8 @@ function create_header_create_post() {
                                 method: "POST",
                                 data: {group_name: group_name},
                                 success: function(data) {
-
+                                    console.log("joined group as admin");
+                                    console.log(data);
                                 }
                 });
     }
@@ -644,9 +682,12 @@ function create_header_create_post() {
                                method: "POST",
                                data: {group_name: group_name},
                                success: function(data) {
-
+                                console.log(data);
+                                    console.log("joined group as user");
                                }
                });
    }
+
+
 
 </script>

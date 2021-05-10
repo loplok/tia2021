@@ -1,14 +1,16 @@
-body, html {
+html {
     margin: 0;
-    height: 100%;
+	min-height: 100%;
+	width: 100%;
 }
 
 body {
-	height:100%;
+	min-height: 100%;
+	margin: 0;
     width:100%;
 	display: grid;
-	grid-template-columns: 5% 20% 5px auto 5%;
-	grid-template-rows: 10px 100px 10% 10px 10% 10px auto 5px 30px 10px;
+	grid-template-columns: 5% 20% 10px auto 5%;
+	grid-template-rows: 10px 100px 10% 20px 10% 10px auto 5px 30px 10px;
 	grid-template-areas:
 		' lfade . . . .				'
 		' lfade header header header . '
@@ -20,7 +22,7 @@ body {
         ' lfade . . . . '
         ' lfade footer footer footer . '
         ' lfade . . . . ' ;
-    background-image: linear-gradient(to bottom, #cc6666,#ac3939);
+    background-color: antiquewhite;
 }
 
 /* SECTION CONTENT */
@@ -29,6 +31,7 @@ section {
 	border-style: solid;
 	border-width: 3px;
 	border-color: black;
+	border-radius: 14px;
 }
 
 /* SEARCH BAR */
@@ -39,41 +42,81 @@ section {
 .search-bar {
 	grid-area: search-bar;
 	width: 100%;
+	position: sticky;
+	top:20px;
+}
 
+#modal_content_search h4, p{
+	text-align: center;
+}
+
+#create_group_btn {
+	float: left;
+}
+
+#close_creating_admin_group {
+	float: right;
 }
 
 /* ASIDE-GRID == PROFILE PART ON MAIN MENU*/
-
 aside {
 	grid-area: aside;
 	border-style: solid;
 	border-width: 3px;
 	border-color: black;
 	max-height: 300px;
+	position: sticky;
+	top:80px;
 }
 
 aside p {
 	margin: 0;
 }
 
-
 aside div {
 	margin: auto;
 	height: 50%;
 }
 
-.form-select{
-	text-align: center;
-	display: block;
-	margin: 10px auto;
+.groups-page span{
+	display:table;
+	margin:auto auto;
+	border-radius: 5px 5px 5px;
+	border: 1px solid red;
+	padding: 5px;
+ 	cursor: pointer;
 }
 
-.profile-page-userinfo {	
+.form-select {
+	display: block;
+	margin: 15px auto;
+	text-align: center;
+	text-align-last: center;
+	-moz-text-align-last: center;
+	background-color: lightslategrey;
+	font-weight: bold;
+
+}
+
+.form-select option {
+	height: 20px;
+	background: grey;
+	font-weight: bold;
+	border-bottom: 1px solid gray;
+}
+
+.form-select option:first-child{
+	color: darkred;
+	background-color: black;
+	font-weight: normal;
+}
+
+.profile-page-userinfo {
 	text-align: center;
 	margin-top: 2px;
 }
 
-aside div img {
+aside .profile-pic img {
 	margin-top: 5px;
 	height: 62px;
 	width: 62px;
@@ -81,8 +124,24 @@ aside div img {
  	margin-right: auto;
     display: block;
     border-radius: 50%;
+
 }
 
+.groups-page .left-img {
+	float: left;
+	width: 50%;
+	max-width: 30px;
+	max-height: 30px;
+	cursor: pointer;
+}
+
+.groups-page .right-img {
+	float: right;
+	width: 50%;
+	max-width: 30px;
+	max-height: 30px;
+	cursor: pointer;
+}
 
 /* HEADER-GRID */
 
@@ -102,6 +161,7 @@ header h3 {
 header a {
 	color:black;
 }
+
 header a:hover {
  text-decoration : none;
  color:inherit;
@@ -114,7 +174,6 @@ footer {
 }
 
 /* NAVBAR MENU */
-
 nav {
 	grid-area: nav;
 	max-height: 100px;
@@ -133,15 +192,27 @@ nav {
   text-align: center;
   padding: 14px 16px;
   text-decoration: none;
-
+  border-radius: 14px;
 }
 
 /* Add a red background color to navbar links on hover */
 .navbar a:hover{
-  background-color: red;	
+  background-color: red;
   transition: 2s;
 }
 
+.create-post form{
+	margin: 0 auto;
+}
+
+#create_post_group_select, #create_post_book {
+	width: auto;
+	margin: 0 auto;
+}
+
+#create_post_textarea {
+	text-align: center;
+}
 
 .main_section {
 	grid-area: section-grid;
@@ -201,12 +272,87 @@ nav {
 }
 
 #main_group_posts {
-overflow: auto;
+
 }
 
 #add_book_div {
 	margin-top: 20px;
 }
 
+/*
+ LOADER FOR GROUP POSTS AND OTHER PARTS OF AJAX PAGE LOADING
+ */
+.lds-dual-ring {
+	width: 10px;
+	height: 10px;
+	position: absolute;
+	top: 50%;
+	left: 60%;
+}
+
+.lds-dual-ring:after {
+	content: " ";
+	display: block;
+	width: 75px;
+	height: 75px;
+	margin: 8px;
+	border-radius: 50%;
+	border: 10px solid #fff;
+	border-color: darkred transparent black transparent;
+	animation: lds-dual-ring 1.2s linear infinite;
+}
+
+@keyframes lds-dual-ring {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+#close_creating_admin_group {
+	display: block;
+	width: 100%;
+	margin: 0 auto;
+}
+
+/*
+ADD BOOK TO LIBRARY MODAL CSS
+ */
+#myModal > div > div {
+	align-items: center;
+	justify-content: center;
+}
+
+#myModal .modal-body{
+	width: 75%;
+}
+
+
+#insert_book input::placeholder, input {
+	text-align: center;
+}
+
+#close_adding_book_modal {
+	float: right;
+}
+
+/*
+REMOVE BOOK TO LIBRARY MODAL CSS
+ */
+#close_removing_book{
+	float: right;
+}
+
+.library_books tbody tr {
+	background-color: #ccffcd;
+}
+
+[data-id='add_friend'] {
+	display: block;
+	width: 50%;
+	margin: 10px auto;
+}
 
 

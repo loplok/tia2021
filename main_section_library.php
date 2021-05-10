@@ -2,7 +2,8 @@
     <div class="container">
     <div class="row">
         <div class="col text-center" id="add_book_div">
-	        <button type="button" class="btn btn-outline-dark btn-lg" data-toggle="modal" data-target="#myModal">Add a book to your library</button>
+	        <button type="button" class="btn btn-outline-dark btn-lg" data-toggle="modal" data-target="#myModal"
+	        style="margin: 30px 0;">Add a book to your library</button>
         </div>
     </div>
 
@@ -12,40 +13,61 @@
 
 
 
-    <!-- Modal -->
+    <!-- Modal for ADDING books-->
     <div id="myModal" class="modal fade" role="dialog">
       <div class="modal-dialog">
         <!-- Modal content-->
         <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title" id="adding_book_modal_text">Add a book to your library</h5>
+                <h5 class="modal-title" id="adding_book_modal_text">Adding a book to your library</h5>
               </div>
         <div class="modal-body">
             <form id="insert_book">
                       <div class="form-group">
-                        <label for="book-name" class="col-form-label">Enter book name:</label>
+                        <b><label for="book-name" class="col-form-label">BOOK NAME</label></b>
                         <input type="text" class="form-control" id="book_name">
                       </div>
                       <div class="form-group">
-                         <label for="message-text" class="col-form-label">Author: </label>
+                         <b><label for="message-text" class="col-form-label">AUTHOR</label></b>
                          <input type="text" class="form-control" id="author_name">
                       </div>
                       <div class="form-group">
-                         <label for="message-text" class="col-form-label">
-                         Create category(leave blank if category is chosen):</label>
-                         <input type="text" class="form-control" id="category_name">
+                         <b><label for="message-text" class="col-form-label">CREATE CATEGORY</label></b>
+                         <input type="text" class="form-control" id="category_name"
+                         placeholder="Leave blank if category was chosen">
                       </div>
                       <select class="form-select" aria-label="Default select example">
                       <?php fill_categories_of_user_when_adding_books($mysqli); ?>
-             <input type="submit" name="insert" id="insert_book" value="Insert" class="btn btn-success"/>
+             <input type="submit" name="insert" id="insert_book" value="Insert" class="btn btn-dark"/>
+             <button type="button" class="btn btn-danger" data-dismiss="modal" id="close_adding_book_modal">Close</button>
+
             </form>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-          </div>
+
       </div>
       </div>
     </div>
+
+
+    <!-- Modal for removing BOOKS -->
+        <div id="remove_book_modal" class="modal fade" role="dialog">
+          <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="adding_book_modal_text">Would you like to remove book from library ?</h5>
+                  </div>
+            <div class="modal-body">
+                <form id="remove_book_form" method="post">
+                <button type="submit" class="btn btn-dark" data-id="" id="modal-close-submit">Remove book</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal" id="close_removing_book">Close</button>
+                </form>
+            </div>
+
+          </div>
+          </div>
+        </div>
+
 </section>
 
 
@@ -77,4 +99,31 @@
           });
         }
     });
+
+
+   $(function(){
+       $('.library_books tbody tr').on('click', function () {
+           evID = $(this).attr('id');
+           $('#modal-close-submit').attr('data-id', evID);
+           $('#remove_book_modal').modal('show');
+       });
+   });
+
+
+   $('#remove_book_form').on('submit', function (event){
+       event.preventDefault();
+       var library_record_id = $('#modal-close-submit').attr('data-id');
+       console.log(library_record_id);
+
+         $.ajax({
+           url:"remove_book.php",
+           method: "POST",
+           data: {library_record_id: library_record_id},
+           success: function(result) {
+                $('#remove_book_modal').modal('hide');
+                console.log(result);
+                location.reload();
+           }
+         });
+   });
 </script>
