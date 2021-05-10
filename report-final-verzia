@@ -1,0 +1,21 @@
+<h2>Patrik Černý, FINAL REPORT</h2>
+<p>Socialna siet per milovnikov knih</p>
+
+tiabookery.sk
+
+Implementovane je prihlasenie novych uzivatelov, pridavanie a mazanie knih zo svojej kniznice, pridavanie sa do skupiny, pridanie prispevkov v danych skupinach.
+Vieme komentovat a prezerat prispevky v jednotlivych skupinach, vieme ich ohodnotit Like-om. Taktiez vieme zakladat nove skupiny pomocou search baru, pridavanie sa
+do vytvorenych skupin ako member. 
+
+Neiplementovane ostava adminovanie skupin, nie je mozne pre adminov zatial dat uzivatelom ban z nejakej skupiny. News feed ostal ako podstranka ale bola zbytocna
+kedze tuto ulohu uplne plni news feed skupin na hlavnej stranke. 
+
+Co sa tyka hodin, urcite tipujem cisty cas cez 120 hodin, islo tam vela okrem tohoto cisteho do zistovania co a ako sa ma robit. 
+
+problemy asi hlavne boli s tym kolko som si toho zvolil co sa tyka funkcionality a zlej volby struktury databazy. Kedze toho bolo viac, stranka stratila nieco na dizajne za 
+cenu funcionality. 
+
+Inak by som navrhol databazu a urcite by som trosku znizil funkcionalitu, aby som sa mohol viac venovat dizajnu a celkovemu looku a feelingu stranky. 
+
+Som hrdy, myslim ze na svoje schopnosti a okolnosti co sa tyka bakalarskej prace to je fajn, len ten dizajn ma asi najviac mrzi. Kvalitne mi pridu selecty a praca z DB ale 
+nedal by som za to ruku do ohna.
